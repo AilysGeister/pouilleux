@@ -11,7 +11,7 @@ public class Game {
 	//Attributes:
     private Round round;
     private int currentPlayerID;
-    private int turnCount = 1;
+    private int turnCount = 0;
 
     //Constructors:
     /**
@@ -20,6 +20,7 @@ public class Game {
 	public Game() {
 		this.round = new Round();
 		this.currentPlayerID = 0;
+		this.turnCount = 0;
 	}	
 	
 	/**
@@ -34,7 +35,7 @@ public class Game {
 			ViewManager.navigateTo("TitleScreen");
 			System.out.println(PropretiesReader.getString("failLoad"));
 		}
-		
+		this.turnCount = 0;
 	}
 	
 	/**
@@ -96,7 +97,11 @@ public class Game {
 	 * @return
 	 */
 	public int getTurnCount() {
-	    return turnCount;
+	    if (this.turnCount<=4) {
+	    	return 1;
+	    } else {
+	    	return 1+this.turnCount/4;
+	    }
 	}
     
     /**
@@ -274,7 +279,7 @@ public class Game {
         if (current.getIsBot() && current.getInGame()) {
             //We reload the view to show what change for the humans players:
             try {
-                Thread.sleep(500);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -306,19 +311,22 @@ public class Game {
      */
     private boolean checkGameOver() {
     	//Initialization:
-        boolean allHumansEmpty = true;
-
-        //We verifying if there is still humans in the game:
-        allHumansEmpty = onlyBotsRemain();
+    	//If all the humans players are discard all there cards, we stop the game and define the loser as the one who have the JSpades, it avoid the wait an eternity the end of the game
+        boolean allHumansEmpty = onlyBotsRemain();
+        int stillInGame = 4;
         
-        //If all the humans players are discard all there cards, we stop the game and define the loser as the one who have the JSpades, it avoid the wait an eternity the end of the game.
-        if (allHumansEmpty) {
+        //If there is only two players in the game the one who have the JSpades loose:
+        for (Player player: this.round.getAllPlayers()) {
+        	if (!player.getInGame()) {
+        		stillInGame -= 1;
+        	}
+        }
+        
+        //If one of the conditions is true the game is over:
+        if (allHumansEmpty || stillInGame == 2) {
         	//We search the loser due to findLoser():
-            Player loser = findLoser();
-            if (loser != null) {
-                ViewManager.navigateTo("EndGameScreen", loser);
-                return true;
-            }
+            ViewManager.navigateTo("EndGameScreen", findLoser());
+            return true;
         }
 
         //If no one conditions is filled it means that the game is not over:

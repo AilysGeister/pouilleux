@@ -205,7 +205,7 @@ public class GameScreen extends JPanel {
 		quitButton.setFont(new Font("Tahoma", Font.BOLD, 14));
 		toolBar.add(quitButton);
 		
-		JLabel turnNumberJLabel = new JLabel(PropretiesReader.getString("turn")+ game.getTurnCount()); //$NON-NLS-1$
+		JLabel turnNumberJLabel = new JLabel(PropretiesReader.getString("turn")+ game.getTurnCount());
 		toolBar.add(turnNumberJLabel);
 
 	}

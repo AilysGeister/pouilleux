@@ -33,6 +33,61 @@ public class Card {
 		this.color = color;
 	}
 	
+	/**
+	 * constructor that use the compact code of a card to create it.
+	 * @param code
+	 * @param family 
+	 */
+	public Card(String code) {
+		//Initialization:
+        String valuePart = code.substring(0, code.length() - 1);
+        String family = new String();
+        int value;
+        char familyCode = code.charAt(code.length() - 1);
+        Color color = null;
+
+        //We indentifying the card's value:
+        switch (valuePart) {
+            case "J": 
+            	value = 11; 
+            	break;
+            case "Q": 
+            	value = 12; 
+            	break;
+            case "K": 
+            	value = 13; 
+            	break;
+            default: 
+            	value = Integer.parseInt(valuePart); 
+            	break;
+        }
+        
+        //We identifying the card's family:
+        switch (familyCode) {
+            case 'H':
+                family = "hearts";
+                color = Color.RED;
+                break;
+            case 'D':
+                family = "diamonds";
+                color = Color.RED;
+                break;
+            case 'S':
+                family = "spades";
+                color = Color.BLUE;
+                break;
+            case 'C':
+                family = "clubs";
+                color = Color.BLUE;
+                break;
+        }
+        
+        //Once we get all the data we create the card:
+        this.value = value;
+        this.family = family;
+        this.color = color;
+	}
+
 	//Methods:
 	/**
 	 * Set the value of the card.

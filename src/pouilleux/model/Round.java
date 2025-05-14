@@ -47,17 +47,14 @@ public class Round {
 		//Initialization:
 	    this.players = new ArrayList<Player>();
 	    this.discard = new ArrayList<Card>();
+	    String line = new String();
 	    ArrayList<Card> deck;
 	    Scanner save = new Scanner(new FileInputStream(savePath));
 
-	    //Each line represent a player:
-	    while (save.hasNextLine()) {
-	        String line = save.nextLine();
+	    //The first four line represent a player:
+	    for (int i=0; i<4; i++) {
+	        line = save.nextLine();
 	        String[] parts = line.split(",");
-	        String valuePart, family;
-            char familyCode;
-            int value;
-            Color color = null;
 
 	        //The first part of the CSV line is the boolean isBot of Player class:
 	        boolean isBot = Boolean.parseBoolean(parts[0]);
@@ -74,53 +71,24 @@ public class Round {
 	        deck = new ArrayList<Card>();
 
 	        //The rest of the line represent the different cards of the player's deck: 
-	        for (int i = 3; i < parts.length; i++) {
-	            String cardStr = parts[i];
-	            if (cardStr.length() < 2) continue;
-
-	            //Preparing variables:
-	            valuePart = cardStr.substring(0, cardStr.length() - 1);
-	            familyCode = cardStr.charAt(cardStr.length() - 1);
-	            family = null;
-	            color = null;
-
-	            //We indentifying the card's value:
-	            switch (valuePart) {
-	                case "J": 
-	                	value = 11; 
-	                	break;
-	                case "Q": 
-	                	value = 12; 
-	                	break;
-	                case "K": 
-	                	value = 13; 
-	                	break;
-	                default: 
-	                	value = Integer.parseInt(valuePart); 
-	                	break;
-	            }
-	            
-	            //We identifying the card's family:
-	            switch (familyCode) {
-	                case 'H':
-	                    family = "hearts"; color = Color.RED; break;
-	                case 'D':
-	                    family = "diamonds"; color = Color.RED; break;
-	                case 'S':
-	                    family = "spades"; color = Color.BLUE; break;
-	                case 'C':
-	                    family = "clubs"; color = Color.BLUE; break;
-	            }
-
-	            //If the constructor doesn't recognize the card we created it:
-	            if (family != null) {
-	                deck.add(new Card(value, family, color));
-	            }
+	        for (int j = 3; j < parts.length; j++) {
+	            String cardStr = parts[j];
+	            deck.add(new Card(cardStr));
 	        }
 
 	        //Create the player's deck:
 	        player.setDeck(deck);
 	        this.players.add(player);
+	    }
+	    
+	    //The last line is corresponding to the discard:
+	    if (save.hasNext()) {
+	    	line = save.nextLine();
+	    	String[] parts = line.split(",");
+	    	for (int i = 3; i < parts.length; i++) {
+	            String cardStr = parts[i];
+	            this.discard.add(new Card(cardStr));
+	        }
 	    }
 
 	    //Close the file:
@@ -271,16 +239,29 @@ public class Round {
 		this.getPlayer(sourcePlayerID).setDeck(source);
 	}
 	
+	/**
+	 * Specific pick from a specific player.
+	 * @param currentPlayerID
+	 * @param sourcePlayerID
+	 */
 	public void pickFrom(int currentPlayerID, int sourcePlayerID) {
+		//Initialization:
 	    ArrayList<Card> source = this.getPlayer(sourcePlayerID).getDeck();
 	    ArrayList<Card> destination = this.getPlayer(currentPlayerID).getDeck();
+	    int cardIndex;
+	    Card card;
 
-	    if (source.isEmpty()) return; // sécurité
+	    //We verifying that the source isn't empty:
+	    if (source.isEmpty()) {
+	    	return;
+	    }
 
-	    int cardIndex = new Random().nextInt(source.size());
-	    Card drawn = source.remove(cardIndex);
-	    destination.add(drawn);
+	    //We get an random card:
+	    cardIndex = new Random().nextInt(source.size());
+	    card = source.remove(cardIndex);
+	    destination.add(card);
 
+	    //We update the deck and discard:
 	    this.getPlayer(currentPlayerID).setDeck(destination);
 	    this.getPlayer(sourcePlayerID).setDeck(source);
 	}
@@ -291,12 +272,12 @@ public class Round {
 	 * @throws IOException
 	 */
 	public void save() throws IOException {
-	    System.out.println("A");
+	    //Initialization:
 	    StringBuilder fileName = new StringBuilder();
 	    Date time = new Date();
-	    String temp = time.toString(); // e.g. "Tue May 14 15:30:45 CEST 2024"
+	    String temp = time.toString();
 
-	    // Nettoyage du nom de fichier
+	    //Replace non-allowed characters by '-':
 	    for (int i = 0; i < temp.length(); i++) {
 	        char c = temp.charAt(i);
 	        if (c == ':' || c == ' ') {
@@ -306,18 +287,22 @@ public class Round {
 	        }
 	    }
 
-	    File dir = new File("saves");
-	    if (!dir.exists()) dir.mkdir(); // Crée le dossier s'il n'existe pas
-
+	    //Then we create the file with the good name:
 	    FileWriter save = new FileWriter("saves/" + fileName + ".csv");
-	    System.out.println("B");
 
+	    //Each player is represented by a line:
 	    for (Player player : this.players) {
 	        save.write(player.toCSV() + "\n");
 	    }
-
+	    //the last line represent the discard:
+	    if (!this.discard.isEmpty()) {
+	    	for (Card card: this.discard)  {
+		    	save.write(card.toStringCompact()+",");
+		    }
+	    }
+	    
+	    //Closing the file:
 	    save.close();
-	    System.out.println("Sauvegarde réussie dans " + fileName + ".csv");
 	}
 
 	
